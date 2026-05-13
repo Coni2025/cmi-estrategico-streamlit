@@ -13,31 +13,114 @@ from sklearn.decomposition import PCA
 # =====================================================
 
 st.set_page_config(
-    page_title="CMI Estratégico",
+    page_title="CMI Estratégico Premium",
     layout="wide"
 )
 
 # =====================================================
-# TÍTULO PRINCIPAL
+# CSS PREMIUM
 # =====================================================
 
-st.title("📊 CMI con Sostenibilidad y Clustering Estratégico")
+st.markdown("""
+<style>
+
+/* Fondo principal */
+.main {
+    background-color: #f4f7fb;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f172a, #111827);
+    border-right: 1px solid #1f2937;
+}
+
+section[data-testid="stSidebar"] * {
+    color: white;
+}
+
+/* Títulos */
+h1, h2, h3 {
+    color: #111827;
+    font-weight: 700;
+}
+
+/* KPI Cards */
+[data-testid="metric-container"] {
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0px 4px 14px rgba(0,0,0,0.06);
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 16px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: white;
+    border-radius: 12px;
+    padding: 10px 18px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Selectbox */
+.stSelectbox > div > div {
+    border-radius: 12px;
+    background-color: white;
+}
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* Botones */
+.stButton button {
+    border-radius: 12px;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+}
+
+/* Caja IA */
+.bot-box {
+    background: linear-gradient(135deg, #dbeafe, #eff6ff);
+    padding: 25px;
+    border-radius: 18px;
+    border: 1px solid #93c5fd;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# HEADER PRINCIPAL
+# =====================================================
+
+st.title("📊 CMI Estratégico Inteligente")
 
 st.markdown("""
-Sistema inteligente de análisis empresarial basado en:
+### Plataforma avanzada de analítica empresarial
 
-- Cuadro de Mando Integral (CMI)
-- Sostenibilidad
-- Clustering estratégico
-- Analítica visual interactiva
+Sistema inteligente basado en:
+
+- 📈 Cuadro de Mando Integral (CMI)
+- 🌱 Sostenibilidad
+- 🧠 Clustering estratégico
+- 🤖 Inteligencia analítica empresarial
 """)
 
 # =====================================================
-# SUBIR EXCEL
+# SUBIR ARCHIVO
 # =====================================================
 
 archivo = st.file_uploader(
-    "📂 Sube tu Excel (.xlsx)",
+    "📂 Sube tu Excel empresarial",
     type=["xlsx"]
 )
 
@@ -73,7 +156,7 @@ if archivo:
     else:
 
         # =====================================================
-        # LIMPIEZA DATOS
+        # LIMPIEZA
         # =====================================================
 
         df = df.dropna(subset=columnas[1:])
@@ -142,10 +225,10 @@ if archivo:
         # SIDEBAR
         # =====================================================
 
-        st.sidebar.title("⚙️ Configuración")
+        st.sidebar.title("⚙️ Panel Ejecutivo")
 
         area = st.sidebar.selectbox(
-            "Selección área estratégica",
+            "Área estratégica",
             [
                 "GLOBAL",
                 "FINANZAS",
@@ -156,8 +239,21 @@ if archivo:
             ]
         )
 
+        st.sidebar.markdown("---")
+
+        st.sidebar.markdown("""
+### 📌 Objetivo
+
+Evaluar empresas mediante:
+
+- desempeño estratégico
+- sostenibilidad
+- clustering empresarial
+- inteligencia visual
+""")
+
         # =====================================================
-        # FILTRO ÁREA
+        # FILTRO
         # =====================================================
 
         if area == "GLOBAL":
@@ -169,7 +265,7 @@ if archivo:
             df_filtrado = df[df[area] >= 4]
 
         # =====================================================
-        # KPIs EJECUTIVOS
+        # KPIs
         # =====================================================
 
         promedio_score = round(
@@ -203,7 +299,7 @@ if archivo:
 
         col3.metric(
             "🥇 Mejor Empresa",
-            mejor_empresa
+            mejor_empresa[:18]
         )
 
         col4.metric(
@@ -214,11 +310,11 @@ if archivo:
         st.divider()
 
         # =====================================================
-        # BUSCADOR EMPRESA
+        # BUSCADOR
         # =====================================================
 
         empresa_seleccionada = st.selectbox(
-            "🔍 Buscar empresa",
+            "🔎 Buscar empresa",
             df_filtrado["EMPRESA"].unique()
         )
 
@@ -228,60 +324,134 @@ if archivo:
 
         st.info(
             f"""
-            Empresa seleccionada: {empresa_seleccionada}
+Empresa seleccionada: {empresa_seleccionada}
 
-            Score total: {round(float(empresa_info['SCORE_TOTAL'].values[0]),2)}
+📈 Score total: {round(float(empresa_info['SCORE_TOTAL'].values[0]),2)}
 
-            Clasificación: {empresa_info['CLASIFICACION'].values[0]}
+🏅 Clasificación: {empresa_info['CLASIFICACION'].values[0]}
 
-            Cluster: {empresa_info['CLUSTER'].values[0]}
-            """
+🧠 Cluster: {empresa_info['CLUSTER'].values[0]}
+"""
         )
 
         # =====================================================
-        # INSIGHTS AUTOMÁTICOS
+        # IA ESTRATÉGICA
         # =====================================================
 
-        st.subheader("🧠 Insights automáticos")
+        st.subheader("🤖 Asistente Estratégico IA")
 
-        mejor_area = df_filtrado[
+        pregunta = st.selectbox(
+            "Selecciona una consulta estratégica",
             [
-                "FINANZAS",
-                "COMERCIAL",
-                "OPERACIONES",
-                "FORMACION",
-                "SOSTENIBILIDAD"
+                "¿Cuál es la mejor empresa para invertir?",
+                "¿Qué área estratégica tiene mejor desempeño?",
+                "¿Cuál es el principal riesgo estratégico?",
+                "¿Qué cluster domina actualmente?",
+                "¿Qué empresas son más sólidas?"
             ]
-        ].mean().idxmax()
+        )
 
-        peor_area = df_filtrado[
-            [
-                "FINANZAS",
-                "COMERCIAL",
-                "OPERACIONES",
-                "FORMACION",
-                "SOSTENIBILIDAD"
-            ]
-        ].mean().idxmin()
+        respuesta = ""
 
-        st.success(
+        if pregunta == "¿Cuál es la mejor empresa para invertir?":
+
+            top = df_filtrado.sort_values(
+                by="SCORE_TOTAL",
+                ascending=False
+            ).iloc[0]
+
+            respuesta = f"""
+La empresa más atractiva actualmente es:
+
+🏢 {top['EMPRESA']}
+
+📈 Score total: {round(top['SCORE_TOTAL'],2)}
+
+🏅 Clasificación: {top['CLASIFICACION']}
+
+Esta empresa presenta el mejor equilibrio estratégico global.
+"""
+
+        elif pregunta == "¿Qué área estratégica tiene mejor desempeño?":
+
+            mejor_area = df_filtrado[
+                [
+                    "FINANZAS",
+                    "COMERCIAL",
+                    "OPERACIONES",
+                    "FORMACION",
+                    "SOSTENIBILIDAD"
+                ]
+            ].mean().idxmax()
+
+            respuesta = f"""
+📌 El área con mejor rendimiento promedio es:
+
+✅ {mejor_area}
+
+Esto indica una ventaja competitiva relevante en dicha dimensión.
+"""
+
+        elif pregunta == "¿Cuál es el principal riesgo estratégico?":
+
+            peor_area = df_filtrado[
+                [
+                    "FINANZAS",
+                    "COMERCIAL",
+                    "OPERACIONES",
+                    "FORMACION",
+                    "SOSTENIBILIDAD"
+                ]
+            ].mean().idxmin()
+
+            respuesta = f"""
+⚠️ El área más débil actualmente es:
+
+❌ {peor_area}
+
+Se recomienda fortalecer esta dimensión estratégica.
+"""
+
+        elif pregunta == "¿Qué cluster domina actualmente?":
+
+            respuesta = f"""
+🧠 El cluster dominante actual es:
+
+✅ Cluster {cluster_dominante}
+
+Esto representa el grupo empresarial más frecuente dentro del análisis.
+"""
+
+        elif pregunta == "¿Qué empresas son más sólidas?":
+
+            top5 = df_filtrado.sort_values(
+                by="SCORE_TOTAL",
+                ascending=False
+            ).head(5)
+
+            nombres = top5["EMPRESA"].tolist()
+
+            respuesta = "\n".join(
+                [f"✅ {n}" for n in nombres]
+            )
+
+        st.markdown(
             f"""
-            📌 Área con mejor desempeño: {mejor_area}
-
-            📌 Área más débil: {peor_area}
-
-            📌 El cluster dominante actual es el {cluster_dominante}
-            """
+<div class="bot-box">
+{respuesta}
+</div>
+""",
+            unsafe_allow_html=True
         )
 
         st.divider()
 
         # =====================================================
-        # TABS PRINCIPALES
+        # TABS
         # =====================================================
 
         tab1, tab2, tab3, tab4 = st.tabs([
-            "📊 Resumen Ejecutivo",
+            "📊 Dashboard",
             "🔥 Heatmap",
             "🧠 Clustering",
             "📥 Exportación"
@@ -360,16 +530,6 @@ if archivo:
                 fontsize=18
             )
 
-            ax.tick_params(
-                axis='y',
-                labelsize=8
-            )
-
-            ax.tick_params(
-                axis='x',
-                labelsize=10
-            )
-
             st.pyplot(fig)
 
         # =====================================================
@@ -378,7 +538,7 @@ if archivo:
 
         with tab3:
 
-            st.subheader("🧠 Mapa estratégico interactivo")
+            st.subheader("🧠 Mapa Estratégico Inteligente")
 
             fig2 = px.scatter(
                 df_filtrado,
@@ -386,6 +546,7 @@ if archivo:
                 y="Y",
                 color="CLUSTER",
                 size="SCORE_TOTAL",
+                text="EMPRESA",
                 hover_name="EMPRESA",
                 hover_data={
                     "SCORE_TOTAL": True,
@@ -394,25 +555,27 @@ if archivo:
                     "X": False,
                     "Y": False
                 },
-                title=f"Mapa Estratégico - {area}",
-                height=700
+                color_continuous_scale="viridis",
+                height=750
             )
 
             fig2.update_traces(
+                textposition="top center",
                 marker=dict(
-                    opacity=0.85,
+                    opacity=0.90,
                     line=dict(
-                        width=1,
-                        color="black"
+                        width=2,
+                        color="white"
                     )
                 )
             )
 
             fig2.update_layout(
+                template="plotly_white",
+                title="Mapa Estratégico Corporativo",
                 title_font_size=24,
-                xaxis_title="Componente Estratégica 1",
-                yaxis_title="Componente Estratégica 2",
-                template="plotly_white"
+                paper_bgcolor="#f4f7fb",
+                plot_bgcolor="white"
             )
 
             st.plotly_chart(
@@ -441,7 +604,7 @@ if archivo:
 
         with tab4:
 
-            st.subheader("📥 Exportar datos")
+            st.subheader("📥 Exportar análisis")
 
             export_df = df_filtrado[
                 [
