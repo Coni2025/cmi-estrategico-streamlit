@@ -538,65 +538,281 @@ Esto representa el grupo empresarial más frecuente dentro del análisis.
 
         with tab3:
 
-            st.subheader("🧠 Mapa Estratégico Inteligente")
+             st.subheader("🧠 Mapa Estratégico Inteligente")
 
-            fig2 = px.scatter(
-                df_filtrado,
-                x="X",
-                y="Y",
-                color="CLUSTER",
-                size="SCORE_TOTAL",
-                text="EMPRESA",
-                hover_name="EMPRESA",
-                hover_data={
-                    "SCORE_TOTAL": True,
-                    "CLASIFICACION": True,
-                    "CLUSTER": True,
-                    "X": False,
-                    "Y": False
-                },
-                color_continuous_scale="viridis",
-                height=750
+    # =====================================================
+    # FILTROS AVANZADOS
+    # =====================================================
+
+    colf1, colf2 = st.columns(2)
+
+    with colf1:
+
+        cluster_filtro = st.multiselect(
+            "🎯 Filtrar clusters",
+            options=sorted(df_filtrado["CLUSTER"].unique()),
+            default=sorted(df_filtrado["CLUSTER"].unique())
+        )
+
+    with colf2:
+
+        score_min = st.slider(
+            "📈 Score mínimo",
+            0.0,
+            7.0,
+            3.0,
+            0.1
+        )
+
+    mapa_df = df_filtrado[
+        (df_filtrado["CLUSTER"].isin(cluster_filtro)) &
+        (df_filtrado["SCORE_TOTAL"] >= score_min)
+    ]
+
+    # =====================================================
+    # TOP EMPRESAS
+    # =====================================================
+
+    mapa_df = mapa_df.sort_values(
+        by="SCORE_TOTAL",
+        ascending=False
+    ).head(25)
+
+    # =====================================================
+    # MAPA PREMIUM
+    # =====================================================
+
+    fig2 = px.scatter(
+
+        mapa_df,
+
+        x="X",
+        y="Y",
+
+        size="SCORE_TOTAL",
+
+        color="SCORE_TOTAL",
+
+        text=None,
+
+        hover_name="EMPRESA",
+
+        hover_data={
+
+            "SCORE_TOTAL": True,
+            "CLASIFICACION": True,
+            "CLUSTER": True,
+
+            "FINANZAS": True,
+            "COMERCIAL": True,
+            "OPERACIONES": True,
+            "FORMACION": True,
+            "SOSTENIBILIDAD": True,
+
+            "X": False,
+            "Y": False
+        },
+
+        color_continuous_scale="Turbo",
+
+        height=850,
+
+        title="Mapa Estratégico Corporativo Premium"
+    )
+
+    # =====================================================
+    # ESTILO EJECUTIVO
+    # =====================================================
+
+    fig2.update_traces(
+
+        marker=dict(
+
+            opacity=0.92,
+
+            line=dict(
+                width=2,
+                color="white"
             )
+        )
+    )
 
-            fig2.update_traces(
-                textposition="top center",
-                marker=dict(
-                    opacity=0.90,
-                    line=dict(
-                        width=2,
-                        color="white"
-                    )
-                )
-            )
+    fig2.update_layout(
 
-            fig2.update_layout(
-                template="plotly_white",
-                title="Mapa Estratégico Corporativo",
-                title_font_size=24,
-                paper_bgcolor="#f4f7fb",
-                plot_bgcolor="white"
-            )
+        template="plotly_white",
 
-            st.plotly_chart(
-                fig2,
-                use_container_width=True
-            )
+        title_font_size=30,
 
-            st.subheader("📊 Empresas por clúster")
+        title_x=0.03,
 
-            st.dataframe(
-                df_filtrado[
-                    [
-                        "EMPRESA",
-                        "CLUSTER",
-                        "SCORE_TOTAL",
-                        "CLASIFICACION"
-                    ]
-                ],
-                use_container_width=True,
-                height=400
-            )
+        paper_bgcolor="#f4f7fb",
+
+        plot_bgcolor="#ffffff",
+
+        font=dict(
+            family="Arial",
+            size=14
+        ),
+
+        xaxis=dict(
+            title="Componente Estratégica X",
+            showgrid=True,
+            gridcolor="#e5e7eb"
+        ),
+
+        yaxis=dict(
+            title="Componente Estratégica Y",
+            showgrid=True,
+            gridcolor="#e5e7eb"
+        )
+    )
+
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    # =====================================================
+    # PANEL IA EMPRESA
+    # =====================================================
+
+    st.subheader("🤖 Diagnóstico Inteligente Empresarial")
+
+    empresa_ia = st.selectbox(
+        "Selecciona empresa para análisis IA",
+        mapa_df["EMPRESA"]
+    )
+
+    empresa_data = mapa_df[
+        mapa_df["EMPRESA"] == empresa_ia
+    ].iloc[0]
+
+    # =====================================================
+    # ANÁLISIS IA
+    # =====================================================
+
+    score = empresa_data["SCORE_TOTAL"]
+
+    finanzas = empresa_data["FINANZAS"]
+    comercial = empresa_data["COMERCIAL"]
+    operaciones = empresa_data["OPERACIONES"]
+    formacion = empresa_data["FORMACION"]
+    sostenibilidad = empresa_data["SOSTENIBILIDAD"]
+
+    areas = [
+        "FINANZAS",
+        "COMERCIAL",
+        "OPERACIONES",
+        "FORMACION",
+        "SOSTENIBILIDAD"
+    ]
+
+    mejor_area = empresa_data[areas].idxmax()
+
+    peor_area = empresa_data[areas].idxmin()
+
+    analisis = f"""
+### 🏢 Empresa: {empresa_ia}
+
+📈 Score estratégico: {round(score,2)}
+
+🏅 Clasificación: {empresa_data['CLASIFICACION']}
+
+🧠 Cluster: {empresa_data['CLUSTER']}
+
+---
+
+## 📊 Evaluación IA
+
+"""
+
+    if score >= 5:
+
+        analisis += """
+✅ Empresa altamente competitiva.
+
+✅ Buen posicionamiento estratégico.
+
+✅ Perfil corporativo sólido para inversión.
+"""
+
+    elif score >= 4:
+
+        analisis += """
+⚠️ Empresa estable con oportunidades de mejora.
+
+⚠️ Rendimiento estratégico medio.
+
+⚠️ Requiere optimización en ciertas áreas.
+"""
+
+    else:
+
+        analisis += """
+❌ Empresa vulnerable estratégicamente.
+
+❌ Bajo desempeño global.
+
+❌ Riesgo competitivo elevado.
+"""
+
+    analisis += f"""
+
+---
+
+🏆 Área más fuerte:
+{mejor_area}
+
+⚠️ Área más débil:
+{peor_area}
+
+"""
+
+    if sostenibilidad >= 5:
+
+        analisis += """
+
+🌱 Presenta buen perfil ESG y sostenibilidad empresarial.
+"""
+
+    if finanzas >= 5:
+
+        analisis += """
+
+💰 Fortaleza financiera relevante.
+"""
+
+    st.markdown(
+        f"""
+<div class="bot-box">
+{analisis}
+</div>
+""",
+        unsafe_allow_html=True
+    )
+
+    # =====================================================
+    # TABLA CLUSTERS
+    # =====================================================
+
+    st.subheader("📊 Empresas destacadas")
+
+    st.dataframe(
+
+        mapa_df[
+            [
+                "EMPRESA",
+                "CLUSTER",
+                "SCORE_TOTAL",
+                "CLASIFICACION"
+            ]
+        ],
+
+        use_container_width=True,
+        height=450
+    )
 
         # =====================================================
         # TAB 4
