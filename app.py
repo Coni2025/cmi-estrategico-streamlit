@@ -818,7 +818,7 @@ Esto representa el grupo empresarial más frecuente dentro del análisis.
         # TAB 4
         # =====================================================
 
-        with tab4:
+    with tab4:
 
             st.subheader("📥 Exportar análisis")
 
