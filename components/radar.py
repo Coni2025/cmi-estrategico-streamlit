@@ -1,40 +1,49 @@
 import streamlit as st
 import plotly.graph_objects as go
 
+
 def render_radar(df):
 
-    st.subheader("🕸️ Comparador Estratégico Radar")
+    st.subheader("🕸️ Radar Estratégico Empresarial")
 
     # =====================================================
     # SELECTORES
     # =====================================================
 
-    empresas = sorted(df["EMPRESA"].unique())
+    empresas = sorted(
+        df["EMPRESA"].unique()
+    )
 
-    c1, c2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-    with c1:
+    with col1:
 
-        empresa_1 = st.selectbox(
-            "🏢 Empresa 1",
+        empresa1 = st.selectbox(
+            "Empresa 1",
             empresas,
-            index=0
+            key="empresa_1"
         )
 
-    with c2:
+    with col2:
 
-        empresa_2 = st.selectbox(
-            "🏢 Empresa 2",
+        empresa2 = st.selectbox(
+            "Empresa 2",
             empresas,
-            index=1
+            index=1,
+            key="empresa_2"
         )
 
     # =====================================================
-    # DATOS
+    # EXTRAER DATOS
     # =====================================================
 
-    e1 = df[df["EMPRESA"] == empresa_1].iloc[0]
-    e2 = df[df["EMPRESA"] == empresa_2].iloc[0]
+    emp1 = df[
+        df["EMPRESA"] == empresa1
+    ].iloc[0]
+
+    emp2 = df[
+        df["EMPRESA"] == empresa2
+    ].iloc[0]
 
     categorias = [
         "FINANZAS",
@@ -44,13 +53,44 @@ def render_radar(df):
         "SOSTENIBILIDAD"
     ]
 
-    valores1 = [e1[c] for c in categorias]
-    valores2 = [e2[c] for c in categorias]
+    valores1 = [
+        float(emp1[c])
+        for c in categorias
+    ]
 
-    # cerrar radar
+    valores2 = [
+        float(emp2[c])
+        for c in categorias
+    ]
+
+    # =====================================================
+    # VALIDACION
+    # =====================================================
+
+    if sum(valores1) == 0:
+
+        st.error(
+            f"⚠️ {empresa1} no tiene métricas suficientes."
+        )
+
+        return
+
+    if sum(valores2) == 0:
+
+        st.error(
+            f"⚠️ {empresa2} no tiene métricas suficientes."
+        )
+
+        return
+
+    # =====================================================
+    # CERRAR POLIGONO
+    # =====================================================
+
+    categorias += [categorias[0]]
+
     valores1 += [valores1[0]]
     valores2 += [valores2[0]]
-    categorias += [categorias[0]]
 
     # =====================================================
     # FIGURA
@@ -58,19 +98,65 @@ def render_radar(df):
 
     fig = go.Figure()
 
-    fig.add_trace(go.Scatterpolar(
-        r=valores1,
-        theta=categorias,
-        fill='toself',
-        name=empresa_1
-    ))
+    # =====================================================
+    # EMPRESA 1
+    # =====================================================
 
-    fig.add_trace(go.Scatterpolar(
-        r=valores2,
-        theta=categorias,
-        fill='toself',
-        name=empresa_2
-    ))
+    fig.add_trace(
+
+        go.Scatterpolar(
+
+            r=valores1,
+
+            theta=categorias,
+
+            fill='toself',
+
+            name=empresa1,
+
+            line=dict(
+                color='#2563eb',
+                width=4
+            ),
+
+            fillcolor='rgba(37,99,235,0.30)',
+
+            marker=dict(
+                color='#2563eb',
+                size=8
+            )
+        )
+    )
+
+    # =====================================================
+    # EMPRESA 2
+    # =====================================================
+
+    fig.add_trace(
+
+        go.Scatterpolar(
+
+            r=valores2,
+
+            theta=categorias,
+
+            fill='toself',
+
+            name=empresa2,
+
+            line=dict(
+                color='#dc2626',
+                width=4
+            ),
+
+            fillcolor='rgba(220,38,38,0.30)',
+
+            marker=dict(
+                color='#dc2626',
+                size=8
+            )
+        )
+    )
 
     # =====================================================
     # LAYOUT
@@ -78,23 +164,27 @@ def render_radar(df):
 
     fig.update_layout(
 
-        title={
-            "text": "📊 Comparación Estratégica Multivariable",
-            "x": 0.5
-        },
-
-        title_font_size=26,
+        title="Interconexión Estratégica Empresarial",
 
         polar=dict(
+
+            bgcolor="white",
+
             radialaxis=dict(
                 visible=True,
-                range=[0,7]
+                range=[0,10]
             )
         ),
 
-        template="plotly_white",
+        showlegend=True,
 
-        height=700
+        height=700,
+
+        paper_bgcolor="white",
+
+        font=dict(
+            size=14
+        )
     )
 
     st.plotly_chart(
@@ -103,40 +193,40 @@ def render_radar(df):
     )
 
     # =====================================================
-    # INSIGHTS IA
+    # ANALISIS IA
     # =====================================================
 
-    st.subheader("🤖 Diagnóstico comparativo")
+    st.subheader("🧠 Análisis IA")
 
-    score1 = e1["SCORE_TOTAL"]
-    score2 = e2["SCORE_TOTAL"]
+    score1 = emp1["SCORE_TOTAL"]
+    score2 = emp2["SCORE_TOTAL"]
 
     if score1 > score2:
 
-        ganadora = empresa_1
+        mejor = empresa1
 
     else:
 
-        ganadora = empresa_2
+        mejor = empresa2
 
-    diferencia = round(abs(score1 - score2),2)
+    st.success(
+        f"🏆 La IA detecta que {mejor} presenta mayor fortaleza estratégica global."
+    )
 
-    st.markdown(f"""
-<div style="
-padding:25px;
-background:linear-gradient(135deg,#eff6ff,#dbeafe);
-border-radius:18px;
-border:1px solid #93c5fd;
-">
+    # =====================================================
+    # DIFERENCIAS
+    # =====================================================
 
-### 🏆 Empresa con mejor perfil estratégico:
-## {ganadora}
+    for c in categorias[:-1]:
 
-📈 Diferencia de score:
-### {diferencia}
+        if emp1[c] > emp2[c]:
 
-✅ El análisis radar permite detectar ventajas competitivas
-en múltiples dimensiones corporativas.
+            st.info(
+                f"🔵 {empresa1} lidera en {c}"
+            )
 
-</div>
-""", unsafe_allow_html=True)
+        elif emp2[c] > emp1[c]:
+
+            st.info(
+                f"🔴 {empresa2} lidera en {c}"
+            )

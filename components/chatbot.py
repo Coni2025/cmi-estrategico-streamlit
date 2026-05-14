@@ -10,7 +10,7 @@ def render_chatbot(df):
 
     def limpiar_texto(texto):
 
-        texto = texto.lower()
+        texto = str(texto).lower()
 
         texto = unicodedata.normalize(
             'NFD',
@@ -19,6 +19,17 @@ def render_chatbot(df):
             'ascii',
             'ignore'
         ).decode("utf-8")
+
+        texto = (
+            texto
+            .replace(",", " ")
+            .replace(".", " ")
+            .replace("-", " ")
+            .replace("_", " ")
+            .replace("/", " ")
+            .replace("(", " ")
+            .replace(")", " ")
+        )
 
         return texto
 
@@ -43,10 +54,40 @@ def render_chatbot(df):
         q = limpiar_texto(pregunta)
 
         # =====================================================
-        # MEJOR EMPRESA GENERAL
+        # MENOR RIESGO
         # =====================================================
 
         if (
+            "menos riesgo" in q or
+            "empresa mas segura" in q or
+            "empresa segura" in q or
+            "bajo riesgo" in q
+        ):
+
+            top = df.sort_values(
+                by="SCORE_TOTAL",
+                ascending=False
+            ).iloc[0]
+
+            respuesta = f"""
+🛡️ Empresa con menor riesgo estratégico:
+
+🏆 {top['EMPRESA']}
+
+📈 Score Total: {round(top['SCORE_TOTAL'],2)}
+
+🌱 ESG: {round(top['ESG_SCORE'],2)}
+
+🏅 Clasificación: {top['CLASIFICACION']}
+
+✅ Presenta alta estabilidad corporativa.
+"""
+
+        # =====================================================
+        # MEJOR EMPRESA
+        # =====================================================
+
+        elif (
             "mejor empresa" in q or
             "mejor puntuacion global" in q or
             "mejor score" in q
@@ -207,13 +248,12 @@ def render_chatbot(df):
 """
 
         # =====================================================
-        # EMPRESAS A
+        # CLASIFICACION A
         # =====================================================
 
         elif (
             "clasificacion a" in q or
             "empresas clasificacion a" in q or
-            "empresas son clasificacion a" in q or
             "empresas a" in q
         ):
 
@@ -240,7 +280,7 @@ def render_chatbot(df):
 """
 
         # =====================================================
-        # EMPRESAS B
+        # CLASIFICACION B
         # =====================================================
 
         elif (
@@ -263,7 +303,7 @@ def render_chatbot(df):
 """
 
         # =====================================================
-        # EMPRESAS C
+        # CLASIFICACION C
         # =====================================================
 
         elif (
@@ -286,7 +326,7 @@ def render_chatbot(df):
 """
 
         # =====================================================
-        # RANKING
+        # RANKING TOP
         # =====================================================
 
         elif (
@@ -317,8 +357,126 @@ def render_chatbot(df):
 
 {texto}
 """
+
         # =====================================================
-        # COMPARADOR EMPRESARIAL
+        # MEJOR SECTOR
+        # =====================================================
+
+        elif (
+            "mejor sector" in q or
+            "sector lider" in q or
+            "sector mas rentable" in q
+        ):
+
+            sector_avg = df.groupby(
+                "SECTOR"
+            )["SCORE_TOTAL"].mean()
+
+            mejor_sector = sector_avg.idxmax()
+
+            valor = round(
+                sector_avg.max(),
+                2
+            )
+
+            respuesta = f"""
+🏆 Sector líder actualmente:
+
+📊 {mejor_sector}
+
+📈 Score promedio: {valor}
+
+✅ Presenta el ecosistema corporativo más sólido.
+"""
+
+        # =====================================================
+        # SECTOR MENOR RIESGO
+        # =====================================================
+
+        elif (
+            "sector menos riesgo" in q or
+            "sector mas seguro" in q or
+            "sector menor riesgo" in q
+        ):
+
+            sector_avg = df.groupby(
+                "SECTOR"
+            )["ESG_SCORE"].mean()
+
+            mejor_sector = sector_avg.idxmax()
+
+            valor = round(
+                sector_avg.max(),
+                2
+            )
+
+            respuesta = f"""
+🛡️ Sector con menor riesgo estratégico:
+
+🏭 {mejor_sector}
+
+🌱 ESG promedio: {valor}
+
+✅ Alta estabilidad corporativa y sostenibilidad.
+"""
+
+        # =====================================================
+        # EMPRESAS POR SECTOR
+        # =====================================================
+
+        elif (
+            "empresas del sector" in q or
+            "empresas de sector" in q or
+            "sector energia" in q or
+            "sector financiero" in q or
+            "sector inmobiliario" in q
+        ):
+
+            sectores = df["SECTOR"].dropna().unique()
+
+            encontrado = None
+
+            for s in sectores:
+
+                nombre_sector = limpiar_texto(s)
+
+                if nombre_sector in q:
+
+                    encontrado = s
+                    break
+
+            if encontrado:
+
+                empresas_sector = df[
+                    df["SECTOR"] == encontrado
+                ]["EMPRESA"].tolist()
+
+                texto = "\n".join(
+                    [f"• {e}" for e in empresas_sector[:20]]
+                )
+
+                respuesta = f"""
+🏭 Empresas del sector:
+
+📊 {encontrado}
+
+{texto}
+"""
+
+            else:
+
+                respuesta = """
+⚠️ No pude identificar el sector.
+
+Prueba:
+
+• empresas del sector energia
+• empresas del sector inmobiliario
+• empresas del sector farmaceutico
+"""
+
+        # =====================================================
+        # COMPARADOR IA
         # =====================================================
 
         elif (
@@ -327,58 +485,85 @@ def render_chatbot(df):
             "mejor entre" in q
         ):
 
-            empresas = df["EMPRESA"].tolist()
+            encontradas = []
 
-            encontrada = []
-
-            for empresa in empresas:
+            for empresa in df["EMPRESA"]:
 
                 nombre = limpiar_texto(
                     empresa
                 )
 
-                if nombre in q:
+                palabras = nombre.split()
 
-                    encontrada.append(
+                coincidencias = 0
+
+                for palabra in palabras:
+
+                    if (
+                        len(palabra) > 3 and
+                        palabra in q
+                    ):
+
+                        coincidencias += 1
+
+                if coincidencias >= 1:
+
+                    encontradas.append(
                         empresa
                     )
 
-            if len(encontrada) >= 2:
+            encontradas = list(
+                dict.fromkeys(encontradas)
+            )
+
+            if len(encontradas) >= 2:
 
                 emp1 = df[
-                    df["EMPRESA"] == encontrada[0]
+                    df["EMPRESA"] == encontradas[0]
                 ].iloc[0]
 
                 emp2 = df[
-                    df["EMPRESA"] == encontrada[1]
+                    df["EMPRESA"] == encontradas[1]
                 ].iloc[0]
 
-                score1 = emp1["SCORE_TOTAL"]
-                score2 = emp2["SCORE_TOTAL"]
+                score1 = float(emp1["SCORE_TOTAL"])
+                score2 = float(emp2["SCORE_TOTAL"])
 
-                if score1 > score2:
+                if score1 == 0 and score2 == 0:
 
-                    mejor = encontrada[0]
+                    respuesta = f"""
+⚠️ No existen suficientes métricas para comparar:
+
+• {encontradas[0]}
+• {encontradas[1]}
+
+La información estratégica todavía es insuficiente.
+"""
 
                 else:
 
-                    mejor = encontrada[1]
+                    if score1 > score2:
 
-                respuesta = f"""
-⚔️ Comparativa estratégica:
+                        mejor = encontradas[0]
 
-🏢 {encontrada[0]}
-📈 Score: {round(score1,2)}
+                    else:
+
+                        mejor = encontradas[1]
+
+                    respuesta = f"""
+⚔️ Comparación estratégica IA
+
+🏢 {encontradas[0]}
+📈 Puntuación: {round(score1,2)}
 🌱 ESG: {round(emp1['ESG_SCORE'],2)}
 
 VS
 
-🏢 {encontrada[1]}
-📈 Score: {round(score2,2)}
+🏢 {encontradas[1]}
+📈 Puntuación: {round(score2,2)}
 🌱 ESG: {round(emp2['ESG_SCORE'],2)}
 
 🏆 Empresa más sólida:
-
 ✅ {mejor}
 """
 
@@ -390,8 +575,92 @@ VS
 Prueba por ejemplo:
 
 • Compara Indra vs Telefónica
-• ¿Qué empresa es mejor entre Repsol e Iberdrola?
+• Compara Repsol vs Iberdrola
+• Compara Santander vs BBVA
 """
+
+        # =====================================================
+        # CONCEPTOS ESG
+        # =====================================================
+
+        elif (
+            "que es esg" in q or
+            "explica esg" in q
+        ):
+
+            respuesta = """
+🌱 ESG significa:
+
+E → Environmental
+S → Social
+G → Governance
+
+Es un indicador que evalúa:
+
+• sostenibilidad
+• impacto ambiental
+• responsabilidad social
+• gobernanza empresarial
+
+Las empresas con alto ESG suelen tener:
+
+✅ menor riesgo
+✅ mejor reputación
+✅ mayor sostenibilidad futura
+"""
+
+        # =====================================================
+        # CONCEPTOS CLUSTERING
+        # =====================================================
+
+        elif (
+            "que es clustering" in q or
+            "que es cluster" in q
+        ):
+
+            respuesta = """
+🧠 Clustering empresarial:
+
+Es una técnica de Inteligencia Artificial que agrupa empresas similares según patrones estratégicos.
+
+Por ejemplo:
+
+• empresas financieras
+• empresas sostenibles
+• empresas de alto crecimiento
+
+La IA detecta automáticamente similitudes usando Machine Learning.
+"""
+
+        # =====================================================
+        # CONCEPTOS SCORE
+        # =====================================================
+
+        elif (
+            "que es score" in q or
+            "que es score estrategico" in q
+        ):
+
+            respuesta = """
+📈 Score Estratégico:
+
+Es una puntuación global creada mediante IA analítica.
+
+Evalúa:
+
+• finanzas
+• operaciones
+• sostenibilidad
+• comercial
+• formación
+
+Un score alto suele indicar:
+
+✅ mejor estabilidad
+✅ mayor capacidad competitiva
+✅ menor riesgo empresarial
+"""
+
         # =====================================================
         # DEFAULT
         # =====================================================
@@ -405,13 +674,16 @@ Todavía estoy aprendiendo esa consulta.
 
 Prueba preguntas como:
 
+• ¿Cuál es el mejor sector?
+• ¿Qué sector tiene menos riesgo?
+• Empresas del sector energía
 • ¿Qué empresa no debo invertir?
 • ¿Cuál es la mejor empresa?
 • ¿Qué empresa tiene mejor ESG?
-• ¿Qué empresa tiene mejor puntuación financiera?
-• ¿Qué empresas son clasificación A?
 • ¿Cuál es el ranking de empresas?
-• ¿Qué empresa tiene mejor sostenibilidad?
+• Compara Indra vs Telefónica
+• ¿Qué es ESG?
+• ¿Qué es clustering?
 """
 
         st.success(respuesta)
