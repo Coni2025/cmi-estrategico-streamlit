@@ -1,134 +1,86 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import plotly.express as px
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
+from components.sidebar import render_sidebar
+from components.chatbot import render_chatbot
+from components.clustering import render_clustering
+from components.radar import render_radar
+from components.investment_ai import render_investment_ai
+
 # =====================================================
-# CONFIGURACIÓN GENERAL
+# CONFIG
 # =====================================================
 
 st.set_page_config(
-    page_title="CMI Estratégico Premium",
+    page_title="CMI Strategic AI",
     layout="wide"
 )
 
 # =====================================================
-# CSS PREMIUM
+# CSS
 # =====================================================
 
 st.markdown("""
 <style>
 
-/* Fondo principal */
 .main {
     background-color: #f4f7fb;
 }
 
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0f172a, #111827);
-    border-right: 1px solid #1f2937;
-}
-
-section[data-testid="stSidebar"] * {
-    color: white;
-}
-
-/* Títulos */
 h1, h2, h3 {
     color: #111827;
     font-weight: 700;
 }
 
-/* KPI Cards */
-[data-testid="metric-container"] {
-    background: white;
-    border-radius: 18px;
-    padding: 18px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0px 4px 14px rgba(0,0,0,0.06);
-}
-
-/* Tabs */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 16px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    background-color: white;
-    border-radius: 12px;
-    padding: 10px 18px;
-    border: 1px solid #e5e7eb;
-}
-
-/* Selectbox */
-.stSelectbox > div > div {
-    border-radius: 12px;
-    background-color: white;
-}
-
-/* Dataframe */
-[data-testid="stDataFrame"] {
-    border-radius: 16px;
-    overflow: hidden;
-}
-
-/* Botones */
-.stButton button {
-    border-radius: 12px;
-    background-color: #2563eb;
-    color: white;
-    border: none;
-}
-
-/* Caja IA */
-.bot-box {
-    background: linear-gradient(135deg, #dbeafe, #eff6ff);
-    padding: 25px;
-    border-radius: 18px;
-    border: 1px solid #93c5fd;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+[data-testid="metric-container"]{
+    background:white;
+    border-radius:18px;
+    padding:18px;
+    border:1px solid #e5e7eb;
+    box-shadow:0px 4px 12px rgba(0,0,0,0.06);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # =====================================================
-# HEADER PRINCIPAL
+# HEADER
 # =====================================================
 
-st.title("📊 CMI Estratégico Inteligente")
+st.title("📊 IA Ejecutiva Estratégica CMI")
 
 st.markdown("""
-### Plataforma avanzada de analítica empresarial
+### Plataforma inteligente de análisis corporativo
 
-Sistema inteligente basado en:
-
-- 📈 Cuadro de Mando Integral (CMI)
-- 🌱 Sostenibilidad
-- 🧠 Clustering estratégico
-- 🤖 Inteligencia analítica empresarial
+- Inteligencia Estratégica
+- ESG Analytics
+- Clústeres Empresariales
+- IA Financiera
+- Análisis Visual
 """)
 
 # =====================================================
-# SUBIR ARCHIVO
+# UPLOAD
 # =====================================================
 
 archivo = st.file_uploader(
-    "📂 Sube tu Excel empresarial",
+    "📂 Sube tu Excel",
     type=["xlsx"]
 )
 
 # =====================================================
-# PROCESAMIENTO
+# MAIN
 # =====================================================
 
 if archivo:
+
+    # =====================================================
+    # LECTURA EXCEL
+    # =====================================================
 
     df = pd.read_excel(archivo)
 
@@ -147,6 +99,25 @@ if archivo:
         "SOSTENIBILIDAD"
     ]
 
+    # =====================================================
+    # LIMPIEZA DATOS
+    # =====================================================
+
+    for col in columnas[1:]:
+
+        df[col] = pd.to_numeric(
+            df[col],
+            errors="coerce"
+        )
+
+    df = df.fillna(0)
+
+    df = df.dropna(subset=["EMPRESA"])
+
+    # =====================================================
+    # VALIDACION
+    # =====================================================
+
     faltan = [c for c in columnas if c not in df.columns]
 
     if faltan:
@@ -156,19 +127,24 @@ if archivo:
     else:
 
         # =====================================================
-        # LIMPIEZA
-        # =====================================================
-
-        df = df.dropna(subset=columnas[1:])
-
-        # =====================================================
         # SCORE TOTAL
         # =====================================================
 
-        df["SCORE_TOTAL"] = df[columnas[1:]].mean(axis=1)
+        df["SCORE_TOTAL"] = df[
+            columnas[1:]
+        ].mean(axis=1)
 
         # =====================================================
-        # CLASIFICACIÓN
+        # ESG SCORE
+        # =====================================================
+
+        df["ESG_SCORE"] = (
+            df["SOSTENIBILIDAD"] * 0.6 +
+            df["FORMACION"] * 0.4
+        )
+
+        # =====================================================
+        # CLASIFICACION
         # =====================================================
 
         def clasificar(x):
@@ -182,7 +158,9 @@ if archivo:
             else:
                 return "C"
 
-        df["CLASIFICACION"] = df["SCORE_TOTAL"].apply(clasificar)
+        df["CLASIFICACION"] = df[
+            "SCORE_TOTAL"
+        ].apply(clasificar)
 
         # =====================================================
         # CLUSTERING
@@ -225,32 +203,7 @@ if archivo:
         # SIDEBAR
         # =====================================================
 
-        st.sidebar.title("⚙️ Panel Ejecutivo")
-
-        area = st.sidebar.selectbox(
-            "Área estratégica",
-            [
-                "GLOBAL",
-                "FINANZAS",
-                "COMERCIAL",
-                "OPERACIONES",
-                "FORMACION",
-                "SOSTENIBILIDAD"
-            ]
-        )
-
-        st.sidebar.markdown("---")
-
-        st.sidebar.markdown("""
-### 📌 Objetivo
-
-Evaluar empresas mediante:
-
-- desempeño estratégico
-- sostenibilidad
-- clustering empresarial
-- inteligencia visual
-""")
+        area = render_sidebar()
 
         # =====================================================
         # FILTRO
@@ -262,177 +215,49 @@ Evaluar empresas mediante:
 
         else:
 
-            df_filtrado = df[df[area] >= 4]
+            df_filtrado = df[
+                df[area] >= 4
+            ]
 
         # =====================================================
         # KPIs
         # =====================================================
 
-        promedio_score = round(
-            df_filtrado["SCORE_TOTAL"].mean(),
-            2
-        )
+        c1, c2, c3, c4 = st.columns(4)
 
-        total_empresas = len(df_filtrado)
-
-        mejor_empresa = df_filtrado.sort_values(
-            by="SCORE_TOTAL",
-            ascending=False
-        ).iloc[0]["EMPRESA"]
-
-        cluster_dominante = (
-            df_filtrado["CLUSTER"]
-            .mode()[0]
-        )
-
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric(
+        c1.metric(
             "📈 Score Promedio",
-            promedio_score
+            round(
+                df_filtrado["SCORE_TOTAL"].mean(),
+                2
+            )
         )
 
-        col2.metric(
+        c2.metric(
             "🏢 Empresas",
-            total_empresas
+            len(df_filtrado)
         )
 
-        col3.metric(
-            "🥇 Mejor Empresa",
-            mejor_empresa[:18]
+        c3.metric(
+            "🌱 ESG Score",
+            round(
+                df_filtrado["ESG_SCORE"].mean(),
+                2
+            )
         )
 
-        col4.metric(
+        c4.metric(
             "🧠 Cluster Dominante",
-            cluster_dominante
+            int(df_filtrado["CLUSTER"].mode()[0])
         )
 
         st.divider()
 
         # =====================================================
-        # BUSCADOR
+        # CHATBOT
         # =====================================================
 
-        empresa_seleccionada = st.selectbox(
-            "🔎 Buscar empresa",
-            df_filtrado["EMPRESA"].unique()
-        )
-
-        empresa_info = df_filtrado[
-            df_filtrado["EMPRESA"] == empresa_seleccionada
-        ]
-
-        st.info(
-            f"""
-Empresa seleccionada: {empresa_seleccionada}
-
-📈 Score total: {round(float(empresa_info['SCORE_TOTAL'].values[0]),2)}
-
-🏅 Clasificación: {empresa_info['CLASIFICACION'].values[0]}
-
-🧠 Cluster: {empresa_info['CLUSTER'].values[0]}
-"""
-        )
-
-        # =====================================================
-        # ASISTENTE IA
-        # =====================================================
-
-        st.subheader("🤖 Asistente Estratégico IA")
-
-        pregunta = st.selectbox(
-            "Selecciona una consulta estratégica",
-            [
-                "¿Cuál es la mejor empresa para invertir?",
-                "¿Qué área estratégica tiene mejor desempeño?",
-                "¿Cuál es el principal riesgo estratégico?",
-                "¿Qué cluster domina actualmente?",
-                "¿Qué empresas son más sólidas?"
-            ]
-        )
-
-        respuesta = ""
-
-        if pregunta == "¿Cuál es la mejor empresa para invertir?":
-
-            top = df_filtrado.sort_values(
-                by="SCORE_TOTAL",
-                ascending=False
-            ).iloc[0]
-
-            respuesta = f"""
-🏢 Empresa recomendada:
-{top['EMPRESA']}
-
-📈 Score:
-{round(top['SCORE_TOTAL'],2)}
-
-🏅 Clasificación:
-{top['CLASIFICACION']}
-"""
-
-        elif pregunta == "¿Qué área estratégica tiene mejor desempeño?":
-
-            mejor_area = df_filtrado[
-                [
-                    "FINANZAS",
-                    "COMERCIAL",
-                    "OPERACIONES",
-                    "FORMACION",
-                    "SOSTENIBILIDAD"
-                ]
-            ].mean().idxmax()
-
-            respuesta = f"""
-✅ Área más fuerte:
-{mejor_area}
-"""
-
-        elif pregunta == "¿Cuál es el principal riesgo estratégico?":
-
-            peor_area = df_filtrado[
-                [
-                    "FINANZAS",
-                    "COMERCIAL",
-                    "OPERACIONES",
-                    "FORMACION",
-                    "SOSTENIBILIDAD"
-                ]
-            ].mean().idxmin()
-
-            respuesta = f"""
-⚠️ Área más débil:
-{peor_area}
-"""
-
-        elif pregunta == "¿Qué cluster domina actualmente?":
-
-            respuesta = f"""
-🧠 Cluster dominante:
-{cluster_dominante}
-"""
-
-        elif pregunta == "¿Qué empresas son más sólidas?":
-
-            top5 = df_filtrado.sort_values(
-                by="SCORE_TOTAL",
-                ascending=False
-            ).head(5)
-
-            nombres = top5["EMPRESA"].tolist()
-
-            respuesta = "\n".join(
-                [f"✅ {n}" for n in nombres]
-            )
-
-        st.markdown(
-            f"""
-<div class="bot-box">
-{respuesta}
-</div>
-""",
-            unsafe_allow_html=True
-        )
+        render_chatbot(df_filtrado)
 
         st.divider()
 
@@ -440,11 +265,12 @@ Empresa seleccionada: {empresa_seleccionada}
         # TABS
         # =====================================================
 
-        tab1, tab2, tab3, tab4 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "📊 Dashboard",
-            "🔥 Heatmap",
-            "🧠 Clustering",
-            "📥 Exportación"
+            "🌡️ Heatmap",
+            "🌐 Clustering",
+            "🕸️ Radar",
+            "💰 Investment AI"
         ])
 
         # =====================================================
@@ -453,21 +279,10 @@ Empresa seleccionada: {empresa_seleccionada}
 
         with tab1:
 
-            st.subheader("📋 Resultados estratégicos")
+            st.subheader("📊 Dashboard Ejecutivo")
 
             st.dataframe(
-                df_filtrado[
-                    [
-                        "EMPRESA",
-                        "FINANZAS",
-                        "COMERCIAL",
-                        "OPERACIONES",
-                        "FORMACION",
-                        "SOSTENIBILIDAD",
-                        "SCORE_TOTAL",
-                        "CLASIFICACION"
-                    ]
-                ],
+                df_filtrado,
                 use_container_width=True,
                 height=500
             )
@@ -478,36 +293,11 @@ Empresa seleccionada: {empresa_seleccionada}
 
         with tab2:
 
-            st.subheader("🔥 Heatmap estratégico")
+            st.subheader("🌡️ Heatmap Estratégico")
 
-            heatmap_data = df_filtrado.set_index("EMPRESA")[
-                [
-                    "FINANZAS",
-                    "COMERCIAL",
-                    "OPERACIONES",
-                    "FORMACION",
-                    "SOSTENIBILIDAD"
-                ]
-            ]
-
-            altura = max(8, len(df_filtrado) * 0.35)
-
-            fig, ax = plt.subplots(
-                figsize=(14, altura)
+            st.info(
+                "Próximamente: Heatmap IA avanzado."
             )
-
-            sns.heatmap(
-                heatmap_data,
-                annot=True,
-                cmap="RdYlGn",
-                linewidths=0.3,
-                linecolor="gray",
-                cbar=True,
-                annot_kws={"size": 7},
-                ax=ax
-            )
-
-            st.pyplot(fig)
 
         # =====================================================
         # TAB 3
@@ -515,183 +305,7 @@ Empresa seleccionada: {empresa_seleccionada}
 
         with tab3:
 
-            st.subheader("🧠 Mapa Estratégico Inteligente")
-
-            colf1, colf2 = st.columns(2)
-
-            with colf1:
-
-                cluster_filtro = st.multiselect(
-                    "🎯 Filtrar clusters",
-                    options=sorted(df_filtrado["CLUSTER"].unique()),
-                    default=sorted(df_filtrado["CLUSTER"].unique())
-                )
-
-            with colf2:
-
-                score_min = st.slider(
-                    "📈 Score mínimo",
-                    0.0,
-                    7.0,
-                    3.0,
-                    0.1
-                )
-
-            mapa_df = df_filtrado[
-                (df_filtrado["CLUSTER"].isin(cluster_filtro)) &
-                (df_filtrado["SCORE_TOTAL"] >= score_min)
-            ]
-
-            mapa_df = mapa_df.sort_values(
-                by="SCORE_TOTAL",
-                ascending=False
-            ).head(25)
-
-            logos = {
-                "TELEFONICA": "https://logo.clearbit.com/telefonica.com",
-                "INDRA": "https://logo.clearbit.com/indra.es",
-                "INDITEX": "https://logo.clearbit.com/inditex.com",
-                "ACCIONA SA": "https://logo.clearbit.com/acciona.com",
-                "REPSOL": "https://logo.clearbit.com/repsol.com",
-                "IBERDROLA": "https://logo.clearbit.com/iberdrola.com",
-                "MAPFRE": "https://logo.clearbit.com/mapfre.com"
-            }
-
-            mapa_df["LOGO"] = mapa_df["EMPRESA"].map(logos)
-
-            def generar_descripcion(row):
-
-                if row["SCORE_TOTAL"] >= 6:
-                    return "Empresa líder con alto potencial estratégico."
-
-                elif row["SCORE_TOTAL"] >= 4:
-                    return "Empresa sólida con desempeño competitivo."
-
-                else:
-                    return "Empresa con riesgos estratégicos relevantes."
-
-            mapa_df["ANALISIS_IA"] = mapa_df.apply(
-                generar_descripcion,
-                axis=1
-            )
-
-            fig2 = px.scatter(
-
-                mapa_df,
-
-                x="X",
-                y="Y",
-
-                color="CLUSTER",
-
-                size="SCORE_TOTAL",
-
-                text="EMPRESA",
-
-                hover_name="EMPRESA",
-
-                hover_data={
-                    "SCORE_TOTAL": True,
-                    "CLASIFICACION": True,
-                    "CLUSTER": True,
-                    "ANALISIS_IA": True,
-                    "LOGO": True,
-                    "X": False,
-                    "Y": False
-                },
-
-                color_continuous_scale="Turbo",
-
-                height=850
-            )
-
-            fig2.update_traces(
-
-                textposition="top center",
-
-                marker=dict(
-                    opacity=0.92,
-                    line=dict(
-                        width=2,
-                        color="white"
-                    ),
-                    sizemode="diameter"
-                ),
-
-                hovertemplate="""
-                <b>%{hovertext}</b><br><br>
-
-                📈 Score: %{customdata[0]}<br>
-                🏅 Clasificación: %{customdata[1]}<br>
-                🧠 Cluster: %{customdata[2]}<br><br>
-
-                🤖 IA:<br>
-                %{customdata[3]}<br><br>
-
-                🔗 Logo:<br>
-                %{customdata[4]}
-
-                <extra></extra>
-                """
-            )
-
-            fig2.update_layout(
-
-                template="plotly_white",
-
-                title={
-                    "text": "🌐 Mapa Estratégico Corporativo Inteligente",
-                    "x": 0.5,
-                    "xanchor": "center"
-                },
-
-                title_font_size=30,
-
-                paper_bgcolor="#f4f7fb",
-
-                plot_bgcolor="white",
-
-                font=dict(
-                    family="Arial",
-                    size=13
-                ),
-
-                legend_title="Cluster",
-
-                xaxis=dict(
-                    showgrid=True,
-                    gridcolor="#d1d5db",
-                    zeroline=False
-                ),
-
-                yaxis=dict(
-                    showgrid=True,
-                    gridcolor="#d1d5db",
-                    zeroline=False
-                )
-            )
-
-            st.plotly_chart(
-                fig2,
-                use_container_width=True
-            )
-
-            st.subheader("📊 Empresas destacadas")
-
-            st.dataframe(
-
-                mapa_df[
-                    [
-                        "EMPRESA",
-                        "CLUSTER",
-                        "SCORE_TOTAL",
-                        "CLASIFICACION"
-                    ]
-                ],
-
-                use_container_width=True,
-                height=450
-            )
+            render_clustering(df_filtrado)
 
         # =====================================================
         # TAB 4
@@ -699,29 +313,12 @@ Empresa seleccionada: {empresa_seleccionada}
 
         with tab4:
 
-            st.subheader("📥 Exportar análisis")
+            render_radar(df_filtrado)
 
-            export_df = df_filtrado[
-                [
-                    "EMPRESA",
-                    "CLUSTER",
-                    "SCORE_TOTAL",
-                    "CLASIFICACION"
-                ]
-            ]
+        # =====================================================
+        # TAB 5
+        # =====================================================
 
-            csv = export_df.to_csv(
-                index=False
-            ).encode("utf-8")
+        with tab5:
 
-            st.download_button(
-                label="⬇️ Descargar CSV",
-                data=csv,
-                file_name="empresas_cluster.csv",
-                mime="text/csv"
-            )
-
-            st.dataframe(
-                export_df,
-                use_container_width=True
-            )
+            render_investment_ai(df_filtrado)
